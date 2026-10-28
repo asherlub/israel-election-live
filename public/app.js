@@ -172,12 +172,12 @@ function renderAlternative(data){
  let root=document.getElementById('alternative-view');
  if(!root){
   root=document.createElement('section');root.id='alternative-view';root.className='alternative-view';root.setAttribute('aria-labelledby','alternative-heading');
-  root.innerHTML='<div class="alternative-heading"><span class="eyebrow">אותם נתונים · חלוקה נוספת</span><h2 id="alternative-heading">ממשלת אחדות — חלוקה חלופית</h2><p>הכותרות והשיוך לקבוצות הם סיווג שבחר מפעיל האתר, ואינם סיווג רשמי או מוסכם. מספרי הקולות והמנדטים של המפלגות זהים לתצוגה המקורית; רק הקיבוץ משתנה.</p><div id="alt-status" role="status"></div><div class="actions"><button id="alt-refresh" type="button">רענון תצוגה חלופית</button><button id="alt-download" type="button">הורדת תמונה — חלוקה חלופית</button></div></div><div id="alt-loading" hidden></div><div id="alt-data-note" class="notice hidden"></div><div id="alt-connection" class="notice hidden"></div>';
+  root.innerHTML='<div class="alternative-heading"><span class="eyebrow">אותם נתונים · נקודת מבט נוספת</span><h2 id="alternative-heading">ממשלת אחדות - שבירת הקונספציה</h2><div id="alt-status" role="status"></div><div class="actions"><button id="alt-refresh" type="button">רענון תצוגה</button><button id="alt-download" type="button">הורדת תמונה — ממשלת אחדות</button></div></div><div id="alt-loading" hidden></div><div id="alt-data-note" class="notice hidden"></div><div id="alt-connection" class="notice hidden"></div>';
   const dashboard=document.getElementById('dashboard').cloneNode(true);
   [dashboard,...dashboard.querySelectorAll('[id]')].forEach(el=>{if(el.id)el.id='alt-'+el.id;});
   dashboard.querySelectorAll('[aria-labelledby]').forEach(el=>el.setAttribute('aria-labelledby',el.getAttribute('aria-labelledby').split(' ').map(id=>'alt-'+id).join(' ')));
-  const groupingNote=dashboard.querySelector('.block-heading span');if(groupingNote)groupingNote.textContent='חלוקה חלופית לפי בחירת מפעיל האתר';
-  dashboard.querySelectorAll('.method-content p').forEach(el=>{if(el.textContent.includes('שמות הרשימות והשיוך לגושים'))el.textContent='שמות הקבוצות והשיוך אליהן בתצוגה זו נקבעו על ידי מפעיל האתר. חישוב המנדטים והסכמי העודפים זהים לתצוגה המקורית; יתר הרשימות נכללות באחרים בפילוח היישובים.';});
+  const groupingNote=dashboard.querySelector('.block-heading span');if(groupingNote)groupingNote.textContent='ממשלת אחדות - שבירת הקונספציה';
+  dashboard.querySelectorAll('.method-content p').forEach(el=>{if(el.textContent.includes('שמות הרשימות והשיוך לגושים'))el.textContent='חישוב המנדטים והסכמי העודפים זהים לתצוגה המקורית; יתר הרשימות נכללות באחרים בפילוח היישובים.';});
   root.appendChild(dashboard);const stamp=document.createElement('p');stamp.id='alt-timestamp';stamp.className='footnote';root.appendChild(stamp);
   document.querySelector('main').appendChild(root);
   root.addEventListener('click',e=>withAlternative(()=>{
