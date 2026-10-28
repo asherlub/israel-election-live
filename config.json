@@ -1,0 +1,133 @@
+{
+  "title": "תמונת המנדטים והקולות המבוזבזים",
+  "seedDate": "2026-10-28",
+  "sourceUrl": "https://media26.bechirot.gov.il/files/expc.csv",
+  "agreementsVerified": false,
+  "agreementsSource": "https://www.globes.co.il/news/article.aspx?did=1001561042",
+  "agreements": [
+    [
+      "מחל",
+      "ט"
+    ],
+    [
+      "שס",
+      "ג"
+    ],
+    [
+      "דרך",
+      "אמת"
+    ],
+    [
+      "רק",
+      "ל"
+    ],
+    [
+      "ודם",
+      "עם"
+    ]
+  ],
+  "blocs": [
+    {
+      "id": "right",
+      "name": "גוש נתניהו",
+      "color": "#0664ec"
+    },
+    {
+      "id": "change",
+      "name": "גוש השינוי",
+      "color": "#009783"
+    },
+    {
+      "id": "arab",
+      "name": "גוש הערבים",
+      "color": "#ed2854"
+    },
+    {
+      "id": "other",
+      "name": "ללא שיוך לגוש",
+      "color": "#8660bd"
+    }
+  ],
+  "parties": {
+    "מחל": {
+      "name": "הליכוד",
+      "leader": "בנימין נתניהו",
+      "bloc": "right"
+    },
+    "ב": {
+      "name": "עוצמה יהודית",
+      "leader": "איתמר בן גביר",
+      "bloc": "right"
+    },
+    "ג": {
+      "name": "יהדות התורה",
+      "leader": "דגל התורה • אגודת ישראל",
+      "bloc": "right"
+    },
+    "שס": {
+      "name": "ש״ס",
+      "leader": "אריה דרעי",
+      "bloc": "right"
+    },
+    "ט": {
+      "name": "הציונות הדתית + זהות",
+      "leader": "סמוטריץ׳ ופייגלין",
+      "bloc": "right"
+    },
+    "דרך": {
+      "name": "ישר!",
+      "leader": "גדי איזנקוט",
+      "bloc": "change"
+    },
+    "רק": {
+      "name": "ביחד",
+      "leader": "נפתלי בנט • יאיר לפיד",
+      "bloc": "change"
+    },
+    "אמת": {
+      "name": "הדמוקרטים",
+      "leader": "יאיר גולן",
+      "bloc": "change"
+    },
+    "ל": {
+      "name": "ישראל ביתנו",
+      "leader": "אביגדור ליברמן",
+      "bloc": "change"
+    },
+    "ודם": {
+      "name": "הרשימה המשותפת",
+      "leader": "יוסף ג׳בארין ואחמד טיבי",
+      "bloc": "arab"
+    },
+    "עם": {
+      "name": "רע״ם",
+      "leader": "מנסור עבאס",
+      "bloc": "arab"
+    },
+    "די": {
+      "name": "המילואימניקים והכלכלית",
+      "leader": "יועז הנדל • ירון זליכה",
+      "bloc": "other"
+    },
+    "ך": {
+      "name": "עמך ישראל",
+      "leader": "עופר וינטר",
+      "bloc": "other"
+    },
+    "זך": {
+      "name": "הציבור החרדי",
+      "leader": "מוטי לייטנר",
+      "bloc": "other"
+    },
+    "נר": {
+      "name": "צבע שחור",
+      "leader": "הרב אליהו בויימרנד",
+      "bloc": "other"
+    },
+    "ני": {
+      "name": "נעם",
+      "leader": "אבי מעוז",
+      "bloc": "other"
+    }
+  }
+}
