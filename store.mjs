@@ -42,7 +42,7 @@ export class ResultsStore{
         if(this.snapshot.origin!=='official')throw new Error('Unexpected 304');
         this.snapshot.fetchedAt=new Date().toISOString();this.lastError=null;await this.persist();return;
       }
-      console.info('SOURCE_HTTP',JSON.stringify({status:response.status,contentType:response.headers.get('content-type'),redirected:response.redirected}));
+      console.info('SOURCE_HTTP',JSON.stringify({status:response.status,contentType:response.headers.get('content-type'),redirected:response.redirected,wafAction:response.headers.get('x-amzn-waf-action'),server:response.headers.get('server'),retryAfter:response.headers.get('retry-after')}));
       if(!response.ok)throw new Error('HTTP '+response.status);
       if(Number(response.headers.get('content-length'))>20_000_000)throw new Error('CSV exceeds limit');
       const chunks=[];let size=0;
