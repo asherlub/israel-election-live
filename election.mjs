@@ -101,7 +101,7 @@ export function localityBreakdown(csv,config,limit=30){
 }
 
 export function alternativeConfig(config){
- const blocs=[{id:'hard-right',name:'ימין קיצוני וחרדים',color:'#7452b8'},{id:'right-center',name:'מפלגות ימין ומרכז',color:'#1675b9'},{id:'left-arab',name:'שמאל קיצוני וערבים',color:'#d74d70'}];
+ const blocs=[{id:'hard-right',name:'ימין קיצוני וחרדים',color:'#7452b8'},{id:'right-center',name:'מפלגות ימין ומרכז-שמאל',color:'#1675b9'},{id:'left-arab',name:'שמאל קיצוני וערבים',color:'#d74d70'}];
  const assignments={'ב':'hard-right','שס':'hard-right','ג':'hard-right','מחל':'right-center','ל':'right-center','ט':'right-center','דרך':'right-center','רק':'right-center','אמת':'left-arab','ודם':'left-arab','עם':'left-arab'};
  return{...config,blocs,parties:Object.fromEntries(Object.entries(config.parties).map(([code,p])=>[code,{...p,bloc:assignments[code]||'other'}]))};
 }
