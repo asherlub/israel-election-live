@@ -99,3 +99,15 @@ test('paired allocation matches independent group and internal highest averages'
  assert.equal(d.cities[0].name,'שני');assert.equal(d.totals.voters,110);assert.equal(d.totals.valid,80);assert.equal(d.totals.votes.other,50);
  assert.equal(Object.values(d.totals.votes).reduce((a,b)=>a+b,0),80);
  });
+
+test('alternative grouping preserves party seats and totals without mutating original config',async()=>{
+ const {alternativeConfig,localityBreakdown}=await import('../election.mjs');
+ const before=JSON.stringify(config),alt=alternativeConfig(config),data=aggregate(csv);
+ const a=summarize(data,config),b=summarize(data,alt);
+ assert.equal(JSON.stringify(config),before);
+ assert.deepEqual(a.parties.map(p=>[p.code,p.votes,p.seats]),b.parties.map(p=>[p.code,p.votes,p.seats]));
+ assert.equal(b.blocs.reduce((s,g)=>s+g.seats,0),120);
+ assert.equal(alt.parties['ט'].bloc,'right-center');assert.equal(alt.parties['אמת'].bloc,'left-arab');assert.equal(alt.parties['ב'].bloc,'hard-right');
+ const cities=localityBreakdown(csv,alt);
+ for(const city of cities.cities)assert.equal(Object.values(city.votes).reduce((s,v)=>s+v,0),city.valid);
+});
