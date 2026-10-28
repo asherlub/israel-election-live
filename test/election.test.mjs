@@ -8,6 +8,8 @@ import {aggregate,allocate,decodeCsv,parseCsv,summarize} from '../election.mjs';
 import {ResultsStore} from '../store.mjs';
 const csv=await readFile(new URL('../data/seed.csv',import.meta.url),'utf8');
 const config=JSON.parse(await readFile(new URL('../config.json',import.meta.url),'utf8'));
+// Store transport fixtures exercise the official-source path independently of deployment settings.
+config.sourceUrl='https://media26.bechirot.gov.il/files/expc.csv';
 test('reference CSV reconciles, reproduces every party and bloc in supplied image',()=>{
  const d=summarize(aggregate(csv),config);
  assert.equal(d.valid,3758580);assert.equal(d.invalid,16881);assert.equal(d.voters,3775461);
