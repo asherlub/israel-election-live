@@ -79,7 +79,7 @@ async function download(){
     }
     rect(0,0,width,190,'#092c58');
     text('בחירות 2026  /  תמונת מצב עצמאית',1160,44,16,'#97d8ff');
-    text('תמונת המנדטים והקולות המבוזבזים',1160,103,44,'white',true);
+    text('תמונת המנדטים',1160,103,44,'white',true);
     text(statusText(d.status),1160,148,16,'#d1e6f6');
     if(d.status.lastError||d.status.stale||d.status.clientDisconnected)text('עדכניות הנתונים אינה מאומתת כעת',1160,177,14,'#ffcf75');
     const cards=[['קולות כשרים',num(d.valid),'#0664ec'],['סף כניסה · 3.25%',num(d.threshold),'#009783'],['מתחת לחסימה',num(d.wasted),'#ed2854'],['מהקולות הכשרים',pct(d.wastedPercent),'#8252bd']];
