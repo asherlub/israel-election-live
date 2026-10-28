@@ -7,15 +7,13 @@ const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'
 let current,expanded=false,busy=false;
 function statusText(s){
   if(s.origin==='seed')return 'עותק התחלתי שסופק · '+s.seedDate+' · טרם התקבל עדכון מהמקור';
-  if(s.origin==='drive')return 'קובץ Google Drive בהעלאה ידנית · בדיקת הקובץ: '+date(s.lastSuccess);
-  return (s.lastError||s.stale||s.clientDisconnected?'מוצג העותק האחרון · ':'מחובר למקור · ')+'בדיקה מוצלחת: '+date(s.lastSuccess);
+  return (s.lastError||s.stale||s.clientDisconnected?'מוצג העותק האחרון · ':'מחובר למקור · ')+'עודכן לאחרונה: '+date(s.lastSuccess)+' (שעון ישראל)';
 }
 function render(d){
   current=d;
   $('loading').hidden=true;$('dashboard').hidden=false;$('download').disabled=false;
   $('status').innerHTML='<i class="dot '+(d.status.lastError||d.status.stale||d.status.clientDisconnected?'warn':'')+'"></i>'+esc(statusText(d.status));
   const notices=[];
-  if(d.status.origin==='drive')notices.push('הנתונים מבוססים על קובץ שהועלה ידנית ל־Google Drive. האתר בודק את הקובץ כל 15 דקות; זמן הבדיקה אינו זמן עדכון ועדת הבחירות. קובץ חדש ייקלט לאחר החלפת הגרסה של אותו קובץ ב־Drive.');
   if(d.status.origin==='seed')notices.push('המספרים מבוססים על הקובץ שסופק מ־'+d.status.seedDate+'. טרם אומתה הורדה מהמקור הרשמי.');
   if(d.status.lastError)notices.push(d.status.lastError);
   else if(d.status.stale&&d.status.origin!=='seed')notices.push('חלף זמן מאז הבדיקה המוצלחת האחרונה. העדכניות אינה מאומתת כעת.');
@@ -39,7 +37,7 @@ function render(d){
   $('agreements').innerHTML=d.agreements.map(pair=>'<span>'+pair.map(p=>esc(p.name)).join(' + ')+(pair.every(p=>p.active)?'':' · לא פעיל בספירה זו')+'</span>').join('');
   $('agreement-source').href=d.agreementsSource;
   $('audit').innerHTML='<div class="audit"><div>יישובים בקובץ<b>'+num(d.localities)+'</b></div><div>קולות פסולים<b>'+num(d.invalid)+'</b></div><div>מצביעים<b>'+num(d.voters)+'</b></div></div><p>בדיקת מקור כל '+d.status.pollSeconds/60+' דקות; רענון מסך בכל דקה. לחצן הרענון קורא את הנתונים שנשמרו בשרת.<br>ניסיון בדיקה אחרון: '+date(d.status.lastAttempt)+' · בדיקה מוצלחת: '+date(d.status.lastSuccess)+'<br>שינוי בקובץ זוהה לראשונה: '+date(d.status.dataChangedAt)+' · זמן שינוי לפי שרת המקור: '+(d.status.sourceModified?date(d.status.sourceModified):'לא נמסר')+'</p>';
-  $('timestamp').textContent='נתונים נבדקו: '+date(d.status.lastSuccess);
+  $('timestamp').textContent='עודכן לאחרונה: '+date(d.status.lastSuccess)+' (שעון ישראל)';
 }
 function renderTable(){
   const all=current.parties.filter(p=>!p.qualified),shown=expanded?all:all.slice(0,5),rest=all.slice(5);
