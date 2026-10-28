@@ -90,3 +90,12 @@ test('paired allocation matches independent group and internal highest averages'
  }
 });
 
+
+ test('locality breakdown ranks actual voters and reconciles every group including unassigned lists',async()=>{
+ const {localityBreakdown}=await import('../election.mjs');
+ const input='סמל ועדה,שם ישוב,סמל ישוב,בזב,מצביעים,פסולים,כשרים,א,ב,ג\n1,ראשון,1,200,100,10,90,30,40,20\n1,שני,2,200,110,30,80,10,20,50\n';
+ const cfg={blocs:[{id:'right',name:'ימין',color:'#00f'},{id:'change',name:'שינוי',color:'#090'},{id:'arab',name:'ערבים',color:'#f00'}],parties:{'א':{bloc:'right'},'ב':{bloc:'change'}}};
+ const d=localityBreakdown(input,cfg,1);
+ assert.equal(d.cities[0].name,'שני');assert.equal(d.totals.voters,110);assert.equal(d.totals.valid,80);assert.equal(d.totals.votes.other,50);
+ assert.equal(Object.values(d.totals.votes).reduce((a,b)=>a+b,0),80);
+ });
