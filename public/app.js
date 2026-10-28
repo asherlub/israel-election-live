@@ -33,6 +33,7 @@ function render(d){
   $('wasted-total').innerHTML=num(d.wasted)+'<small>'+pct(d.wastedPercent)+' מהקולות הכשרים</small>';
   renderTable();
   renderCities(d.localityBreakdown);
+  renderCoalition(d);
   $('agreement-note').textContent=d.agreementsVerified?'ההסכמים שהוגדרו לחישוב אומתו על ידי מפעיל האתר.':'החישוב מותנה בחמשת הסכמי העודפים שלהלן, על סמך דיווח תקשורתי. טרם אומתו מול הודעה רשמית של ועדת הבחירות.';
   $('agreements').innerHTML=d.agreements.map(pair=>'<span>'+pair.map(p=>esc(p.name)).join(' + ')+(pair.every(p=>p.active)?'':' · לא פעיל בספירה זו')+'</span>').join('');
   $('agreement-source').href=d.agreementsSource;
@@ -128,3 +129,29 @@ function renderCities(data){
  }).join('');
  $('city-legend').innerHTML=groups.map(g=>'<span><i style="--tone:'+g.color+'"></i>'+esc(g.name)+'</span>').join('');
 }
+
+const coalitionSelection=new Set();
+const coalitionColors=['#0765e9','#008b7b','#db3059','#6d4ac7','#b87508','#007da5','#92469f','#526e27','#a34925','#4c659a','#a82973','#36786a'];
+function renderCoalition(d){
+ const parties=d.parties.filter(p=>p.seats>0);
+ const allowed=new Set(parties.map(p=>p.code));
+ for(const code of coalitionSelection)if(!allowed.has(code))coalitionSelection.delete(code);
+ const available=!d.calculationError&&parties.reduce((s,p)=>s+p.seats,0)===120;
+ if(!available){$('coalition-parties').innerHTML='חישוב המנדטים אינו זמין כרגע';$('coalition-count').textContent='—';$('coalition-message').textContent='המשחק יחזור עם חישוב תקין';$('coalition-seats').innerHTML='';$('coalition-presets').innerHTML='';$('coalition-fill').style.width='0%';$('coalition-meter').setAttribute('aria-valuenow','0');$('coalition-selected').textContent='';return;}
+ const selected=parties.filter(p=>coalitionSelection.has(p.code));
+ const total=selected.reduce((s,p)=>s+p.seats,0);
+ $('coalition-count').textContent=total;
+ $('coalition-message').textContent=total===0?'בחרו מפלגות כדי להתחיל':total<61?'חסרים עוד '+(61-total)+' מנדטים לרוב':total===61?'יש רוב — 61 מנדטים!':'יש רוב — '+(total-61)+' מנדטים מעל הרף';
+ $('coalition-message').classList.toggle('has-majority',total>=61);
+ $('coalition-fill').style.width=(total/120*100)+'%';$('coalition-meter').setAttribute('aria-valuenow',String(total));
+ $('coalition-parties').innerHTML=parties.map((p,i)=>'<button type="button" class="coalition-party" data-party="'+esc(p.code)+'" aria-pressed="'+coalitionSelection.has(p.code)+'" style="--party-color:'+coalitionColors[i%coalitionColors.length]+'"><span class="coalition-check" aria-hidden="true">'+(coalitionSelection.has(p.code)?'✓':'+')+'</span><span>'+esc(p.name)+'</span><b>'+p.seats+'</b></button>').join('');
+ $('coalition-presets').innerHTML='<span>בחירה מהירה:</span>'+d.blocs.map(b=>'<button type="button" data-bloc="'+esc(b.id)+'">'+esc(b.name)+'</button>').join('');
+ $('coalition-selected').textContent=selected.length?'הקואליציה שלכם: '+selected.map(p=>p.name).join(' · '):'עדיין לא נבחרו מפלגות';
+ const seats=parties.flatMap((p,i)=>Array.from({length:p.seats},()=>({name:p.name,color:coalitionSelection.has(p.code)?coalitionColors[i%coalitionColors.length]:'#e0e7f0',selected:coalitionSelection.has(p.code)})));
+ let index=0;const circles=[];
+ [24,28,32,36].forEach((n,row)=>{const radius=116+row*33;for(let j=0;j<n;j++){const angle=Math.PI-j*Math.PI/(n-1),x=250+radius*Math.cos(angle),y=240-radius*Math.sin(angle),seat=seats[index++];circles.push('<circle cx="'+x.toFixed(2)+'" cy="'+y.toFixed(2)+'" r="6.7" fill="'+seat.color+'"><title>'+esc(seat.name)+(seat.selected?' · בקואליציה':' · לא נבחרה')+'</title></circle>');}});
+ $('coalition-seats').innerHTML='<svg viewBox="0 0 500 255" role="img" aria-label="'+total+' מושבים נבחרו מתוך 120">'+circles.join('')+'</svg>';
+}
+$('coalition-parties').addEventListener('click',e=>{const b=e.target.closest('[data-party]');if(!b||!current)return;const code=b.dataset.party;coalitionSelection.has(code)?coalitionSelection.delete(code):coalitionSelection.add(code);renderCoalition(current);});
+$('coalition-presets').addEventListener('click',e=>{const b=e.target.closest('[data-bloc]');if(!b||!current)return;coalitionSelection.clear();current.parties.filter(p=>p.bloc===b.dataset.bloc&&p.seats>0).forEach(p=>coalitionSelection.add(p.code));renderCoalition(current);});
+$('coalition-reset').addEventListener('click',()=>{coalitionSelection.clear();if(current)renderCoalition(current);});
