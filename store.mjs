@@ -36,10 +36,10 @@ export class ResultsStore{
     this.lastAttempt=new Date().toISOString();
     try{
       const headers={'Accept':'text/csv,application/octet-stream;q=0.9,*/*;q=0.5','User-Agent':'ElectionSnapshot/1.0'};
-      if(this.snapshot.etag&&this.snapshot.origin==='official')headers['If-None-Match']=this.snapshot.etag;
+      if(this.snapshot.etag&&['official','drive'].includes(this.snapshot.origin))headers['If-None-Match']=this.snapshot.etag;
       const response=await this.fetcher(this.sourceUrl,{headers,signal:AbortSignal.timeout(30000)});
       if(response.status===304){
-        if(this.snapshot.origin!=='official')throw new Error('Unexpected 304');
+        if(!['official','drive'].includes(this.snapshot.origin))throw new Error('Unexpected 304');
         this.snapshot.fetchedAt=new Date().toISOString();this.lastError=null;await this.persist();return;
       }
       console.info('SOURCE_HTTP',JSON.stringify({status:response.status,contentType:response.headers.get('content-type'),redirected:response.redirected,wafAction:response.headers.get('x-amzn-waf-action'),server:response.headers.get('server'),retryAfter:response.headers.get('retry-after')}));
@@ -58,7 +58,7 @@ export class ResultsStore{
       }));
       if(html)throw new Error('Source returned HTML instead of CSV');
       const data=aggregate(csv),hash=this.hash(csv),now=new Date().toISOString();
-      this.snapshot={csv,hash,fetchedAt:now,changedAt:hash===this.snapshot.hash?this.snapshot.changedAt||now:now,sourceModified:response.headers.get('last-modified'),etag:response.headers.get('etag'),origin:'official'};
+      this.snapshot={csv,hash,fetchedAt:now,changedAt:hash===this.snapshot.hash?this.snapshot.changedAt||now:now,sourceModified:response.headers.get('last-modified'),etag:response.headers.get('etag'),origin:new URL(this.sourceUrl).hostname==='drive.google.com'?'drive':'official'};
       this.data=data;this.lastError=null;await this.persist();
     }catch(e){
       this.lastError='ההורדה או בדיקת הנתונים נכשלה; מוצג העותק האחרון שעבר בדיקה.';
