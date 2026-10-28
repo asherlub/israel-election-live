@@ -84,3 +84,18 @@ export function summarize(data,config){
   return{...data,votes:undefined,title:config.title,threshold,wasted,wastedPercent:wasted/data.valid*100,parties,calculationError,rounds:calculation?.rounds||[],blocs:config.blocs.map(b=>({...b,parties:parties.filter(p=>p.qualified&&p.bloc===b.id),seats:calculation?parties.filter(p=>p.qualified&&p.bloc===b.id).reduce((s,p)=>s+p.seats,0):null,votes:parties.filter(p=>p.qualified&&p.bloc===b.id).reduce((s,p)=>s+p.votes,0)})).filter(b=>b.parties.length),agreements:config.agreements.map(pair=>pair.map(c=>({code:c,name:config.parties[c]?.name||c,active:parties.find(p=>p.code===c)?.qualified||false}))),agreementsVerified:config.agreementsVerified,agreementsSource:config.agreementsSource};
 }
 
+
+export function localityBreakdown(csv,config,limit=30){
+ const [headers,...rows]=parseCsv(csv);
+ const groups=config.blocs.filter(b=>b.id!=='other').map(b=>({id:b.id,name:b.name,color:b.color}));
+ groups.push({id:'other',name:'אחרים',color:'#8291a7'});
+ const ids=new Set(groups.map(b=>b.id));
+ const cities=rows.filter(r=>Number(r[2])>0&&!/מעטפות|חוץ לארץ/.test(r[1])).map(r=>{
+  const votes=Object.fromEntries(groups.map(b=>[b.id,0]));
+  for(let i=7;i<headers.length;i++)if(headers[i]){const id=config.parties[headers[i]]?.bloc;votes[ids.has(id)?id:'other']+=Number(r[i]);}
+  return{code:r[2],name:r[1],voters:Number(r[4]),invalid:Number(r[5]),valid:Number(r[6]),votes};
+ }).sort((a,b)=>b.voters-a.voters||Number(a.code)-Number(b.code)).slice(0,limit);
+ const totals={voters:0,valid:0,invalid:0,votes:Object.fromEntries(groups.map(b=>[b.id,0]))};
+ for(const c of cities){totals.voters+=c.voters;totals.valid+=c.valid;totals.invalid+=c.invalid;for(const b of groups)totals.votes[b.id]+=c.votes[b.id];}
+ return{groups,cities,totals};
+}

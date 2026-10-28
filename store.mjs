@@ -2,7 +2,7 @@
 import {readFile,writeFile,mkdir,rename} from 'node:fs/promises';
 import {join} from 'node:path';
 import {createHash} from 'node:crypto';
-import {aggregate,decodeCsv,summarize} from './election.mjs';
+import {aggregate,decodeCsv,summarize,localityBreakdown} from './election.mjs';
 export class ResultsStore{
   constructor(config,{dataDir,fetcher=fetch,interval=900000,sourceUrl=config.sourceUrl}){
     Object.assign(this,{config,dataDir,fetcher,interval,sourceUrl});this.lastError=null;this.lastAttempt=null;this.busy=null;this.persistenceError=null;
@@ -19,7 +19,7 @@ export class ResultsStore{
   }
   hash(csv){return createHash('sha256').update(csv).digest('hex');}
   view(){
-    return{...summarize(this.data,this.config),status:{origin:this.snapshot.origin,seedDate:this.config.seedDate,lastAttempt:this.lastAttempt,lastSuccess:this.snapshot.fetchedAt,dataChangedAt:this.snapshot.changedAt,sourceModified:this.snapshot.sourceModified,lastError:this.lastError,persistenceError:this.persistenceError,stale:!this.snapshot.fetchedAt||Date.now()-Date.parse(this.snapshot.fetchedAt)>this.interval*2.5,pollSeconds:this.interval/1000,hash:this.snapshot.hash,sourceUrl:this.sourceUrl}};
+    return{...summarize(this.data,this.config),localityBreakdown:localityBreakdown(this.snapshot.csv,this.config),status:{origin:this.snapshot.origin,seedDate:this.config.seedDate,lastAttempt:this.lastAttempt,lastSuccess:this.snapshot.fetchedAt,dataChangedAt:this.snapshot.changedAt,sourceModified:this.snapshot.sourceModified,lastError:this.lastError,persistenceError:this.persistenceError,stale:!this.snapshot.fetchedAt||Date.now()-Date.parse(this.snapshot.fetchedAt)>this.interval*2.5,pollSeconds:this.interval/1000,hash:this.snapshot.hash,sourceUrl:this.sourceUrl}};
   }
   async persist(){
     try{
