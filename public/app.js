@@ -1,5 +1,8 @@
 
-const $=id=>document.getElementById(id);
+let activePrefix='';
+const $=id=>document.getElementById(activePrefix+id);
+let alternateData=null,alternateExpanded=false;
+const alternateSelection=new Set();
 const num=n=>n==null?'—':new Intl.NumberFormat('he-IL').format(n);
 const pct=n=>n.toFixed(2)+'%';
 const date=s=>s?new Intl.DateTimeFormat('he-IL',{dateStyle:'short',timeStyle:'short',timeZone:'Asia/Jerusalem'}).format(new Date(s)):'טרם אומת';
@@ -39,6 +42,7 @@ function render(d){
   $('agreement-source').href=d.agreementsSource;
   $('audit').innerHTML='<div class="audit"><div>יישובים בקובץ<b>'+num(d.localities)+'</b></div><div>קולות פסולים<b>'+num(d.invalid)+'</b></div><div>מצביעים<b>'+num(d.voters)+'</b></div></div><p>בדיקת מקור כל '+d.status.pollSeconds/60+' דקות; רענון מסך בכל דקה. לחצן הרענון קורא את הנתונים שנשמרו בשרת.<br>ניסיון בדיקה אחרון: '+date(d.status.lastAttempt)+' · בדיקה מוצלחת: '+date(d.status.lastSuccess)+'<br>שינוי בקובץ זוהה לראשונה: '+date(d.status.dataChangedAt)+' · זמן שינוי לפי שרת המקור: '+(d.status.sourceModified?date(d.status.sourceModified):'לא נמסר')+'</p>';
   $('timestamp').textContent='עודכן לאחרונה: '+date(d.status.lastSuccess)+' (שעון ישראל)';
+  if(!activePrefix&&d.alternative)renderAlternative({...d.alternative,status:d.status});
 }
 function renderTable(){
   const all=current.parties.filter(p=>!p.qualified),shown=expanded?all:all.slice(0,5),rest=all.slice(5);
@@ -59,8 +63,9 @@ async function load(){
 }
 // Draw text and figures directly to a local canvas; no third-party screenshot service.
 async function download(){
+  const downloadButton=$('download');
   if(!current)return;const d=structuredClone(current);d.status.stale=d.status.stale||!d.status.lastSuccess||Date.now()-Date.parse(d.status.lastSuccess)>d.status.pollSeconds*2500;
-  $('download').disabled=true;
+  downloadButton.disabled=true;
   try{
     const groups=d.blocs,rows=d.parties.filter(p=>!p.qualified),summary=rows.slice(0,5),rest=rows.slice(5);
     const width=1200,colCount=Math.min(groups.length,3),colWidth=(width-80-(colCount-1)*16)/colCount;
@@ -106,7 +111,7 @@ async function download(){
     if(!blob)throw new Error('Image generation failed');
     const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='election-snapshot.png';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
   }catch{$('connection').textContent='הורדת התמונה נכשלה. אפשר לנסות שוב.';$('connection').classList.remove('hidden');}
-  finally{$('download').disabled=false;}
+  finally{downloadButton.disabled=false;}
 }
 $('toggle').addEventListener('click',()=>{expanded=!expanded;renderTable();});
 $('refresh').addEventListener('click',load);
@@ -130,7 +135,7 @@ function renderCities(data){
  $('city-legend').innerHTML=groups.map(g=>'<span><i style="--tone:'+g.color+'"></i>'+esc(g.name)+'</span>').join('');
 }
 
-const coalitionSelection=new Set();
+let coalitionSelection=new Set();
 const coalitionColors=['#0765e9','#008b7b','#db3059','#6d4ac7','#b87508','#007da5','#92469f','#526e27','#a34925','#4c659a','#a82973','#36786a'];
 function renderCoalition(d){
  const parties=d.parties.filter(p=>p.seats>0);
@@ -155,3 +160,34 @@ function renderCoalition(d){
 $('coalition-parties').addEventListener('click',e=>{const b=e.target.closest('[data-party]');if(!b||!current)return;const code=b.dataset.party;coalitionSelection.has(code)?coalitionSelection.delete(code):coalitionSelection.add(code);renderCoalition(current);});
 $('coalition-presets').addEventListener('click',e=>{const b=e.target.closest('[data-bloc]');if(!b||!current)return;coalitionSelection.clear();current.parties.filter(p=>p.bloc===b.dataset.bloc&&p.seats>0).forEach(p=>coalitionSelection.add(p.code));renderCoalition(current);});
 $('coalition-reset').addEventListener('click',()=>{coalitionSelection.clear();if(current)renderCoalition(current);});
+
+function withAlternative(action){
+ const original={prefix:activePrefix,current,expanded,selection:coalitionSelection};
+ activePrefix='alt-';current=alternateData;expanded=alternateExpanded;coalitionSelection=alternateSelection;
+ try{return action();}finally{alternateExpanded=expanded;activePrefix=original.prefix;current=original.current;expanded=original.expanded;coalitionSelection=original.selection;}
+}
+function renderAlternative(data){
+ alternateData=data;
+ let root=document.getElementById('alternative-view');
+ if(!root){
+  root=document.createElement('section');root.id='alternative-view';root.className='alternative-view';root.setAttribute('aria-labelledby','alternative-heading');
+  root.innerHTML='<div class="alternative-heading"><span class="eyebrow">אותם נתונים · חלוקה נוספת</span><h2 id="alternative-heading">תמונת הבחירות לפי חלוקה חלופית</h2><p>הכותרות והשיוך לקבוצות הם סיווג שבחר מפעיל האתר, ואינם סיווג רשמי או מוסכם. מספרי הקולות והמנדטים של המפלגות זהים לתצוגה המקורית; רק הקיבוץ משתנה.</p><div id="alt-status" role="status"></div><div class="actions"><button id="alt-refresh" type="button">רענון תצוגה חלופית</button><button id="alt-download" type="button">הורדת תמונה — חלוקה חלופית</button></div></div><div id="alt-loading" hidden></div><div id="alt-data-note" class="notice hidden"></div><div id="alt-connection" class="notice hidden"></div>';
+  const dashboard=document.getElementById('dashboard').cloneNode(true);
+  [dashboard,...dashboard.querySelectorAll('[id]')].forEach(el=>{if(el.id)el.id='alt-'+el.id;});
+  dashboard.querySelectorAll('[aria-labelledby]').forEach(el=>el.setAttribute('aria-labelledby',el.getAttribute('aria-labelledby').split(' ').map(id=>'alt-'+id).join(' ')));
+  const groupingNote=dashboard.querySelector('.block-heading span');if(groupingNote)groupingNote.textContent='חלוקה חלופית לפי בחירת מפעיל האתר';
+  dashboard.querySelectorAll('.method-content p').forEach(el=>{if(el.textContent.includes('שמות הרשימות והשיוך לגושים'))el.textContent='שמות הקבוצות והשיוך אליהן בתצוגה זו נקבעו על ידי מפעיל האתר. חישוב המנדטים והסכמי העודפים זהים לתצוגה המקורית; יתר הרשימות נכללות באחרים בפילוח היישובים.';});
+  root.appendChild(dashboard);const stamp=document.createElement('p');stamp.id='alt-timestamp';stamp.className='footnote';root.appendChild(stamp);
+  document.querySelector('main').appendChild(root);
+  root.addEventListener('click',e=>withAlternative(()=>{
+   const button=e.target.closest('button');if(!button)return;
+   if(button.id==='alt-toggle'){expanded=!expanded;renderTable();}
+   else if(button.id==='alt-refresh'){render(alternateData);}
+   else if(button.id==='alt-download'){download();}
+   else if(button.id==='alt-coalition-reset'){coalitionSelection.clear();renderCoalition(current);}
+   else if(button.dataset.party){const code=button.dataset.party;coalitionSelection.has(code)?coalitionSelection.delete(code):coalitionSelection.add(code);renderCoalition(current);}
+   else if(button.dataset.bloc){coalitionSelection.clear();current.parties.filter(p=>p.bloc===button.dataset.bloc&&p.seats>0).forEach(p=>coalitionSelection.add(p.code));renderCoalition(current);}
+  }));
+ }
+ withAlternative(()=>render(data));
+}
