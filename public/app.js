@@ -21,7 +21,7 @@ function render(d){
   $('data-note').textContent=notices.join(' ');$('data-note').classList.toggle('hidden',!notices.length);
   const stats=[
     ['קולות כשרים',num(d.valid),'מתוך '+num(d.voters)+' מצביעים','#0664ec'],
-    ['סף כניסה · 3.25%',num(d.threshold),'קולות לרשימה, לפי הספירה הנוכחית','#009783'],
+    ['סף כניסה · 3.25%',num(d.threshold),'קולות לרשימה · המספר יתעדכן בהתאם להמשך ספירת הקולות','#009783'],
     ['לא עברו את אחוז החסימה',num(d.wasted),'קולות כשרים שלא יוקצו להם מושבים','#ed2854'],
     ['חלקם מהקולות הכשרים',pct(d.wastedPercent),num(d.invalid)+' קולות פסולים בנפרד','#8252bd']
   ];
