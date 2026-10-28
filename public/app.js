@@ -7,6 +7,7 @@ const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'
 let current,expanded=false,busy=false;
 function statusText(s){
   if(s.origin==='seed')return 'עותק התחלתי שסופק · '+s.seedDate+' · טרם התקבל עדכון מהמקור';
+  if(s.origin==='drive')return 'קובץ Google Drive בהעלאה ידנית · בדיקת הקובץ: '+date(s.lastSuccess);
   return (s.lastError||s.stale||s.clientDisconnected?'מוצג העותק האחרון · ':'מחובר למקור · ')+'בדיקה מוצלחת: '+date(s.lastSuccess);
 }
 function render(d){
@@ -14,6 +15,7 @@ function render(d){
   $('loading').hidden=true;$('dashboard').hidden=false;$('download').disabled=false;
   $('status').innerHTML='<i class="dot '+(d.status.lastError||d.status.stale||d.status.clientDisconnected?'warn':'')+'"></i>'+esc(statusText(d.status));
   const notices=[];
+  if(d.status.origin==='drive')notices.push('הנתונים מבוססים על קובץ שהועלה ידנית ל־Google Drive. האתר בודק את הקובץ כל 15 דקות; זמן הבדיקה אינו זמן עדכון ועדת הבחירות. קובץ חדש ייקלט לאחר החלפת הגרסה של אותו קובץ ב־Drive.');
   if(d.status.origin==='seed')notices.push('המספרים מבוססים על הקובץ שסופק מ־'+d.status.seedDate+'. טרם אומתה הורדה מהמקור הרשמי.');
   if(d.status.lastError)notices.push(d.status.lastError);
   else if(d.status.stale&&d.status.origin!=='seed')notices.push('חלף זמן מאז הבדיקה המוצלחת האחרונה. העדכניות אינה מאומתת כעת.');
