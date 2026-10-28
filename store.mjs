@@ -42,11 +42,22 @@ export class ResultsStore{
         if(this.snapshot.origin!=='official')throw new Error('Unexpected 304');
         this.snapshot.fetchedAt=new Date().toISOString();this.lastError=null;await this.persist();return;
       }
+      console.info('SOURCE_HTTP',JSON.stringify({status:response.status,contentType:response.headers.get('content-type'),redirected:response.redirected}));
       if(!response.ok)throw new Error('HTTP '+response.status);
       if(Number(response.headers.get('content-length'))>20_000_000)throw new Error('CSV exceeds limit');
       const chunks=[];let size=0;
       for await(const chunk of response.body){size+=chunk.length;if(size>20_000_000)throw new Error('CSV exceeds limit');chunks.push(chunk);}
-      const csv=decodeCsv(Buffer.concat(chunks)),data=aggregate(csv),hash=this.hash(csv),now=new Date().toISOString();
+      const bytes=Buffer.concat(chunks),csv=decodeCsv(bytes);
+      const head=csv.slice(0,8000);
+      const html=/<(?:!doctype\s+html|html|head|body)\b/i.test(head);
+      console.info('SOURCE_FORMAT',JSON.stringify({
+        bytes:bytes.length,firstBytesHex:bytes.subarray(0,12).toString('hex'),
+        html,challenge:/captcha|incapsula|imperva|cloudflare|verify.{0,50}(human|robot)|javascript is disabled|access denied/i.test(head),
+        title:html?(head.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1]||'').replace(/<[^>]*>/g,'').slice(0,120):undefined,
+        firstLine:html?undefined:csv.split(/\r?\n/)[0].slice(0,250)
+      }));
+      if(html)throw new Error('Source returned HTML instead of CSV');
+      const data=aggregate(csv),hash=this.hash(csv),now=new Date().toISOString();
       this.snapshot={csv,hash,fetchedAt:now,changedAt:hash===this.snapshot.hash?this.snapshot.changedAt||now:now,sourceModified:response.headers.get('last-modified'),etag:response.headers.get('etag'),origin:'official'};
       this.data=data;this.lastError=null;await this.persist();
     }catch(e){
@@ -55,4 +66,3 @@ export class ResultsStore{
     }
   }
 }
-
