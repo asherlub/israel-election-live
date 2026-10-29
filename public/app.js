@@ -20,7 +20,9 @@ function seatPie(blocs){
  const point=a=>[180+160*Math.cos(a),180+160*Math.sin(a)].join(' ');
  const title=esc(b.name)+': '+num(b.seats)+' מנדטים · '+(b.seats/total*100).toFixed(1)+'%';
  parts.push(b.seats===total?'<circle cx="180" cy="180" r="160" fill="'+b.color+'"><title>'+title+'</title></circle>':'<path d="M180 180 L'+point(angle)+' A160 160 0 '+(span>Math.PI?1:0)+' 1 '+point(end)+' Z" fill="'+b.color+'" stroke="white" stroke-width="3"><title>'+title+'</title></path>');
- if(b.seats/total>.04)parts.push('<text x="'+(180+105*Math.cos(mid))+'" y="'+(180+105*Math.sin(mid))+'" text-anchor="middle" dominant-baseline="middle" fill="white" font-size="26" font-weight="700">'+num(b.seats)+'</text>');angle=end;
+ const lines=[];for(const word of b.name.split(' ')){if(lines.length&&lines[lines.length-1].length+word.length<15)lines[lines.length-1]+=' '+word;else lines.push(word);}
+ const x=180+100*Math.cos(mid),y=180+100*Math.sin(mid),top=y-(lines.length*15+25)/2;
+ parts.push('<text x="'+x+'" y="'+top+'" text-anchor="middle" fill="white" font-size="25" font-weight="700">'+num(b.seats)+'</text><text text-anchor="middle" fill="white" font-size="12" font-weight="600" direction="rtl">'+lines.map((line,i)=>'<tspan x="'+x+'" y="'+(top+22+i*15)+'">'+esc(line)+'</tspan>').join('')+'</text>');angle=end;
  }
  return '<svg viewBox="0 0 360 360" role="img" aria-label="'+esc(blocs.map(b=>b.name+': '+b.seats+' מנדטים').join(', '))+'">'+parts.join('')+'</svg>';
 }
@@ -44,6 +46,7 @@ function render(d){
   $('stats').innerHTML=stats.map(([label,value,sub,color])=>'<article class="stat" style="--tone:'+color+'"><div class="stat-label">'+label+'</div><strong dir="ltr">'+value+'</strong><small>'+sub+'</small></article>').join('');
   $('seats').innerHTML=d.calculationError?'<p class="error">'+esc(d.calculationError)+'</p>':seatPie(d.blocs);
   $('seats').setAttribute('aria-label',d.blocs.map(b=>b.name+': '+num(b.seats)+' מנדטים').join(', '));
+  $('legend').hidden=true;
   $('legend').innerHTML=d.blocs.map(b=>'<span><i style="--tone:'+b.color+'"></i>'+esc(b.name)+'<b>'+num(b.seats)+'</b></span>').join('');
   $('blocs').innerHTML=d.blocs.map(b=>'<article class="bloc" style="--tone:'+b.color+'"><div class="bloc-head"><div><h3>'+esc(b.name)+'</h3><p>'+num(b.votes)+' קולות לרשימות שעברו</p></div><div class="bloc-number">'+num(b.seats)+'<small>מנדטים</small></div></div><div class="party-labels"><span>הרשימה / ראש הרשימה</span><span>קולות &nbsp; &nbsp; מנדטים</span></div>'+b.parties.map(p=>'<div class="party-row"><div><h4>'+esc(p.name)+'</h4><small>'+esc(p.leader)+'</small></div><div class="votes" dir="ltr">'+num(p.votes)+'</div><div class="mandates">'+num(p.seats)+'</div></div>').join('')+'<div class="bloc-foot"><span>חלק ממושבי הכנסת</span><b dir="ltr">'+(b.seats==null?'—':(b.seats/120*100).toFixed(1)+'%')+'</b></div></article>').join('');
   $('wasted-total').innerHTML=num(d.wasted)+'<small>'+pct(d.wastedPercent)+' מהקולות הכשרים</small>';
