@@ -13,6 +13,17 @@ function statusText(s){
   if(s.origin==='seed')return 'עותק התחלתי שסופק · '+s.seedDate+' · טרם התקבל עדכון מהמקור';
   return (s.lastError||s.stale||s.clientDisconnected?'מוצג העותק האחרון · ':'מחובר למקור · ')+'עודכן לאחרונה: '+date(s.lastSuccess)+' (שעון ישראל)';
 }
+function seatPie(blocs){
+ const total=blocs.reduce((sum,b)=>sum+b.seats,0);if(!total)return '';
+ let angle=-Math.PI/2;const parts=[];
+ for(const b of blocs){if(!b.seats)continue;const span=b.seats/total*Math.PI*2,end=angle+span,mid=angle+span/2;
+ const point=a=>[180+160*Math.cos(a),180+160*Math.sin(a)].join(' ');
+ const title=esc(b.name)+': '+num(b.seats)+' מנדטים · '+(b.seats/total*100).toFixed(1)+'%';
+ parts.push(b.seats===total?'<circle cx="180" cy="180" r="160" fill="'+b.color+'"><title>'+title+'</title></circle>':'<path d="M180 180 L'+point(angle)+' A160 160 0 '+(span>Math.PI?1:0)+' 1 '+point(end)+' Z" fill="'+b.color+'" stroke="white" stroke-width="3"><title>'+title+'</title></path>');
+ if(b.seats/total>.04)parts.push('<text x="'+(180+105*Math.cos(mid))+'" y="'+(180+105*Math.sin(mid))+'" text-anchor="middle" dominant-baseline="middle" fill="white" font-size="26" font-weight="700">'+num(b.seats)+'</text>');angle=end;
+ }
+ return '<svg viewBox="0 0 360 360" role="img" aria-label="'+esc(blocs.map(b=>b.name+': '+b.seats+' מנדטים').join(', '))+'">'+parts.join('')+'</svg>';
+}
 function render(d){
   current=d;
   if(!activePrefix)document.dispatchEvent(new CustomEvent("election-data",{detail:d}));
@@ -31,7 +42,7 @@ function render(d){
     ['חלקם מהקולות הכשרים',pct(d.wastedPercent),num(d.invalid)+' קולות פסולים בנפרד','#8252bd']
   ];
   $('stats').innerHTML=stats.map(([label,value,sub,color])=>'<article class="stat" style="--tone:'+color+'"><div class="stat-label">'+label+'</div><strong dir="ltr">'+value+'</strong><small>'+sub+'</small></article>').join('');
-  $('seats').innerHTML=d.calculationError?'<p class="error">'+esc(d.calculationError)+'</p>':d.blocs.flatMap(b=>Array.from({length:b.seats},()=>'<span class="seat" style="--tone:'+b.color+'" title="'+esc(b.name)+'"></span>')).join('');
+  $('seats').innerHTML=d.calculationError?'<p class="error">'+esc(d.calculationError)+'</p>':seatPie(d.blocs);
   $('seats').setAttribute('aria-label',d.blocs.map(b=>b.name+': '+num(b.seats)+' מנדטים').join(', '));
   $('legend').innerHTML=d.blocs.map(b=>'<span><i style="--tone:'+b.color+'"></i>'+esc(b.name)+'<b>'+num(b.seats)+'</b></span>').join('');
   $('blocs').innerHTML=d.blocs.map(b=>'<article class="bloc" style="--tone:'+b.color+'"><div class="bloc-head"><div><h3>'+esc(b.name)+'</h3><p>'+num(b.votes)+' קולות לרשימות שעברו</p></div><div class="bloc-number">'+num(b.seats)+'<small>מנדטים</small></div></div><div class="party-labels"><span>הרשימה / ראש הרשימה</span><span>קולות &nbsp; &nbsp; מנדטים</span></div>'+b.parties.map(p=>'<div class="party-row"><div><h4>'+esc(p.name)+'</h4><small>'+esc(p.leader)+'</small></div><div class="votes" dir="ltr">'+num(p.votes)+'</div><div class="mandates">'+num(p.seats)+'</div></div>').join('')+'<div class="bloc-foot"><span>חלק ממושבי הכנסת</span><b dir="ltr">'+(b.seats==null?'—':(b.seats/120*100).toFixed(1)+'%')+'</b></div></article>').join('');
@@ -201,6 +212,8 @@ function applyViewMode(){
  const original=document.getElementById('dashboard'),alternative=document.getElementById('alternative-view');
  if(original)original.hidden=unity||!current;
  if(alternative)alternative.hidden=!unity;
+ const map=document.getElementById('election-map'),target=unity?document.getElementById('alt-dashboard'):original;
+ if(map&&target&&current){target.insertBefore(map,target.querySelector('.method')||target.querySelector('.coalition'));map.hidden=false;}
  document.getElementById('view-traditional').setAttribute('aria-pressed',String(!unity));
  document.getElementById('view-unity').setAttribute('aria-pressed',String(unity));
 }
