@@ -1,4 +1,4 @@
-let viewMode=location.hash==='#alternative-heading'?'unity':'traditional';
+let viewMode=location.hash==='#traditional-heading'?'traditional':'unity';
 
 let activePrefix='';
 const $=id=>document.getElementById(activePrefix+id);
@@ -45,6 +45,7 @@ function render(d){
   $('audit').innerHTML='<div class="audit"><div>יישובים בקובץ<b>'+num(d.localities)+'</b></div><div>קולות פסולים<b>'+num(d.invalid)+'</b></div><div>מצביעים<b>'+num(d.voters)+'</b></div></div><p>בדיקת מקור כל '+d.status.pollSeconds/60+' דקות; רענון מסך בכל דקה. לחצן הרענון קורא את הנתונים שנשמרו בשרת.<br>ניסיון בדיקה אחרון: '+date(d.status.lastAttempt)+' · בדיקה מוצלחת: '+date(d.status.lastSuccess)+'<br>שינוי בקובץ זוהה לראשונה: '+date(d.status.dataChangedAt)+' · זמן שינוי לפי שרת המקור: '+(d.status.sourceModified?date(d.status.sourceModified):'לא נמסר')+'</p>';
   $('timestamp').textContent='עודכן לאחרונה: '+date(d.status.lastSuccess)+' (שעון ישראל)';
   if(!activePrefix&&d.alternative)renderAlternative({...d.alternative,status:d.status});
+  if(!activePrefix)applyViewMode();
 }
 function renderTable(){
   const all=current.parties.filter(p=>!p.qualified),shown=expanded?all:all.slice(0,5),rest=all.slice(5);
@@ -180,7 +181,7 @@ function renderAlternative(data){
   const groupingNote=dashboard.querySelector('.block-heading span');if(groupingNote)groupingNote.textContent='ממשלת אחדות - שבירת הקונספציה';
   dashboard.querySelectorAll('.method-content p').forEach(el=>{if(el.textContent.includes('שמות הרשימות והשיוך לגושים'))el.textContent='חישוב המנדטים והסכמי העודפים זהים לתצוגה המקורית; יתר הרשימות נכללות באחרים בפילוח היישובים.';});
   root.appendChild(dashboard);const stamp=document.createElement('p');stamp.id='alt-timestamp';stamp.className='footnote';root.appendChild(stamp);
-  document.querySelector('main').insertBefore(root,document.getElementById('election-map'));
+  document.querySelector('main').insertBefore(root,document.getElementById('dashboard'));
   root.addEventListener('click',e=>withAlternative(()=>{
    const button=e.target.closest('button');if(!button)return;
    if(button.id==='alt-toggle'){expanded=!expanded;renderTable();}
@@ -203,6 +204,6 @@ function applyViewMode(){
  document.getElementById('view-traditional').setAttribute('aria-pressed',String(!unity));
  document.getElementById('view-unity').setAttribute('aria-pressed',String(unity));
 }
-document.getElementById('view-traditional').addEventListener('click',()=>{viewMode='traditional';history.replaceState(null,'',location.pathname+location.search);applyViewMode();});
+document.getElementById('view-traditional').addEventListener('click',()=>{viewMode='traditional';history.replaceState(null,'','#traditional-heading');applyViewMode();});
 document.getElementById('view-unity').addEventListener('click',()=>{viewMode='unity';history.replaceState(null,'','#alternative-heading');applyViewMode();});
 applyViewMode();
