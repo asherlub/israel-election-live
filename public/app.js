@@ -51,7 +51,7 @@ function render(d){
   $('blocs').innerHTML=d.blocs.map(b=>'<article class="bloc" style="--tone:'+b.color+'"><div class="bloc-head"><div><h3>'+esc(b.name)+'</h3><p>'+num(b.votes)+' קולות לרשימות שעברו</p></div><div class="bloc-number">'+num(b.seats)+'<small>מנדטים</small></div></div><div class="party-labels"><span>הרשימה / ראש הרשימה</span><span>קולות &nbsp; &nbsp; מנדטים</span></div>'+b.parties.map(p=>'<div class="party-row"><div><h4>'+esc(p.name)+'</h4><small>'+esc(p.leader)+'</small></div><div class="votes" dir="ltr">'+num(p.votes)+'</div><div class="mandates">'+num(p.seats)+'</div></div>').join('')+'<div class="bloc-foot"><span>חלק ממושבי הכנסת</span><b dir="ltr">'+(b.seats==null?'—':(b.seats/120*100).toFixed(1)+'%')+'</b></div></article>').join('');
   $('wasted-total').innerHTML=num(d.wasted)+'<small>'+pct(d.wastedPercent)+' מהקולות הכשרים</small>';
   renderTable();
-  renderCities(d.localityBreakdown);
+
   renderCoalition(d);
   $('agreement-note').textContent=d.agreementsVerified?'ההסכמים שהוגדרו לחישוב אומתו על ידי מפעיל האתר.':'החישוב מותנה בחמשת הסכמי העודפים שלהלן, על סמך דיווח תקשורתי. טרם אומתו מול הודעה רשמית של ועדת הבחירות.';
   $('agreements').innerHTML=d.agreements.map(pair=>'<span>'+pair.map(p=>esc(p.name)).join(' + ')+(pair.every(p=>p.active)?'':' · לא פעיל בספירה זו')+'</span>').join('');
@@ -137,20 +137,6 @@ load();setInterval(()=>{if(!document.hidden)load();},60000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)load();});
 
 
-
-function renderCities(data){
- if(!data){$('city-rows').innerHTML='<tr><td colspan="3">נתוני יישובים אינם זמינים כעת</td></tr>';return;}
- const {groups,cities,totals}=data;
- const percent=(votes,valid)=>valid?votes/valid*100:0;
- $('city-summary').innerHTML=groups.map(g=>'<div class="city-card" style="--tone:'+g.color+'"><b>'+esc(g.name)+'</b><strong>'+percent(totals.votes[g.id],totals.valid).toFixed(1)+'%</strong><span>'+num(totals.votes[g.id])+' קולות</span></div>').join('');
- $('city-total').textContent='סך הכול ב־'+cities.length+' היישובים: '+num(totals.voters)+' מצביעים · '+num(totals.valid)+' קולות כשרים';
- $('city-rows').innerHTML=cities.map(c=>{
- const label=groups.map(g=>g.name+': '+percent(c.votes[g.id],c.valid).toFixed(1)+'% ('+num(c.votes[g.id])+' קולות)').join(' · ');
- const bar=c.valid?groups.map(g=>{const p=percent(c.votes[g.id],c.valid);return '<span style="width:'+p+'%;background:'+g.color+'" title="'+esc(g.name+': '+p.toFixed(1)+'% · '+num(c.votes[g.id])+' קולות')+'">'+(p>=8?Math.round(p)+'%':'')+'</span>';}).join(''):'ללא קולות כשרים';
- return '<tr><th scope="row">'+esc(c.name)+'</th><td><div class="city-bar" role="img" aria-label="'+esc(label)+'">'+bar+'</div><details class="city-detail"><summary>פירוט קולות</summary>'+groups.map(g=>'<div>'+esc(g.name)+': '+num(c.votes[g.id])+' · '+percent(c.votes[g.id],c.valid).toFixed(1)+'%</div>').join('')+'</details></td><td class="city-count">'+num(c.voters)+'</td></tr>';
- }).join('');
- $('city-legend').innerHTML=groups.map(g=>'<span><i style="--tone:'+g.color+'"></i>'+esc(g.name)+'</span>').join('');
-}
 
 let coalitionSelection=new Set();
 const coalitionColors=['#0765e9','#008b7b','#db3059','#6d4ac7','#b87508','#007da5','#92469f','#526e27','#a34925','#4c659a','#a82973','#36786a'];
