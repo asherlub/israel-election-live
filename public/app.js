@@ -15,6 +15,7 @@ function statusText(s){
 }
 function render(d){
   current=d;
+  if(!activePrefix)document.dispatchEvent(new CustomEvent("election-data",{detail:d}));
   $('loading').hidden=true;$('dashboard').hidden=false;$('download').disabled=false;
   $('status').innerHTML='<i class="dot '+(d.status.lastError||d.status.stale||d.status.clientDisconnected?'warn':'')+'"></i>'+esc(statusText(d.status));
   const notices=[];
@@ -179,7 +180,7 @@ function renderAlternative(data){
   const groupingNote=dashboard.querySelector('.block-heading span');if(groupingNote)groupingNote.textContent='ממשלת אחדות - שבירת הקונספציה';
   dashboard.querySelectorAll('.method-content p').forEach(el=>{if(el.textContent.includes('שמות הרשימות והשיוך לגושים'))el.textContent='חישוב המנדטים והסכמי העודפים זהים לתצוגה המקורית; יתר הרשימות נכללות באחרים בפילוח היישובים.';});
   root.appendChild(dashboard);const stamp=document.createElement('p');stamp.id='alt-timestamp';stamp.className='footnote';root.appendChild(stamp);
-  document.querySelector('main').appendChild(root);
+  document.querySelector('main').insertBefore(root,document.getElementById('election-map'));
   root.addEventListener('click',e=>withAlternative(()=>{
    const button=e.target.closest('button');if(!button)return;
    if(button.id==='alt-toggle'){expanded=!expanded;renderTable();}
@@ -194,6 +195,7 @@ function renderAlternative(data){
 }
 
 function applyViewMode(){
+ document.dispatchEvent(new CustomEvent('election-mode',{detail:viewMode}));
  const unity=viewMode==='unity';
  const original=document.getElementById('dashboard'),alternative=document.getElementById('alternative-view');
  if(original)original.hidden=unity||!current;
