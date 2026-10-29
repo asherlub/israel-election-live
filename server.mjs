@@ -12,7 +12,7 @@ const sourceUrl=process.env.SOURCE_URL||config.sourceUrl;
 if(!/^https:\/\//.test(sourceUrl))throw new Error('SOURCE_URL must use HTTPS');
 const store=new ResultsStore(config,{dataDir:process.env.DATA_DIR||join(root,'cache'),sourceUrl,interval:seconds*1000});
 await store.init(join(root,'data/seed.csv'));
-const routes={'/':['index.html','text/html; charset=utf-8'],'/style.css':['style.css','text/css; charset=utf-8'],'/app.js':['app.js','text/javascript; charset=utf-8']};
+const routes={'/map.js':['map.js','text/javascript; charset=utf-8'],'/map.css':['map.css','text/css; charset=utf-8'],'/map-geo.json':['map-geo.json','application/json; charset=utf-8'],'/':['index.html','text/html; charset=utf-8'],'/style.css':['style.css','text/css; charset=utf-8'],'/app.js':['app.js','text/javascript; charset=utf-8']};
 const server=http.createServer(async(req,res)=>{
   res.setHeader('X-Content-Type-Options','nosniff');
   res.setHeader('Referrer-Policy','no-referrer');
